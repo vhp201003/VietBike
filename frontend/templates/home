@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trang Chủ - VietBike{% endblock %}
+
+{% block content %}
+<div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img src="{% static 'image/home1.jpg' %}" class="d-block w-100" alt="Slide 1">
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'image/home2.jpg' %}" class="d-block w-100" alt="Slide 2">
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'image/OIP.jpg' %}" class="d-block w-100" alt="Slide 3">
+        </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            {% if role == 'driver' %}
+                <h3 class="text-primary">Chuyến đi yêu cầu</h3>
+                <p>Chọn một chuyến đi để nhận và bắt đầu.</p>
+            {% else %}
+                <h3 class="text-primary">Đặt chuyến đi ngay</h3>
+                <form method="post" action="{% url 'frontend:book_ride' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="pickup_location" class="form-label">Điểm đón</label>
+                        <input type="text" class="form-control" id="pickup_location" name="pickup_location" placeholder="Nhập điểm đón" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="destination_location" class="form-label">Điểm đến</label>
+                        <input type="text" class="form-control" id="destination_location" name="destination_location" placeholder="Nhập điểm đến" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Tìm tài xế</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Khởi tạo carousel
+    document.addEventListener('DOMContentLoaded', function () {
+        var carousel = new bootstrap.Carousel(document.getElementById('carouselExample'), {
+            interval: 5000
+        });
+    });
+</script>
+{% endblock %}

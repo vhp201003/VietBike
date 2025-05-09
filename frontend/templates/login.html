@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Đăng Nhập - VietBike{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-lg border-0 rounded-lg" style="width: 450px;">
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <h2 class="text-primary fw-bold">Đăng Nhập</h2>
+            </div>
+            
+            {% if messages %}
+            <div class="messages mb-3">
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if error_message %}
+            <div class="alert alert-danger mb-3">{{ error_message }}</div>
+            {% endif %}
+            
+            <form method="post" action="{% url 'frontend:login' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" class="form-control" name="email" placeholder="Nhập email của bạn" required value="{{ email|default:'' }}">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Mật khẩu</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" name="password" placeholder="Nhập mật khẩu của bạn" required>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Đăng Nhập</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer text-center py-3 bg-light">
+            <p class="mb-0">Chưa có tài khoản? <a href="{% url 'frontend:register' %}" class="text-primary fw-bold">Đăng ký ngay</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Khi trang đăng nhập tải xong, điều chỉnh navbar
+    document.addEventListener('DOMContentLoaded', function() {
+        // Xóa nút hamburger menu (nút 3 gạch)
+        const hamburgerButton = document.querySelector('.navbar-toggler');
+        if (hamburgerButton) {
+            hamburgerButton.style.display = 'none';
+        }
+        
+        // Xóa phần menu collapse
+        const navbarMenu = document.getElementById('navbarNav');
+        if (navbarMenu) {
+            navbarMenu.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

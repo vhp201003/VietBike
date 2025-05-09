@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lịch sử chuyến đi - VietBike{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Lịch sử chuyến đi</h1>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% if rides %}
+        <div class="list-group">
+            {% for ride in rides %}
+                <div class="list-group-item">
+                    <h5>Chuyến đi #{{ ride.id }}</h5>
+                    <p><strong>Điểm bắt đầu:</strong> {{ ride.start_location }}</p>
+                    <p><strong>Điểm kết thúc:</strong> {{ ride.end_location }}</p>
+                    <p><strong>Giá:</strong> {{ ride.fare }} VND</p>
+                    <p><strong>Trạng thái:</strong> {{ ride.status }}</p>
+                    <p><strong>Thời gian yêu cầu:</strong> {{ ride.requested_at }}</p>
+                    {% if ride.completed_at %}
+                        <p><strong>Thời gian hoàn thành:</strong> {{ ride.completed_at }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Chưa có chuyến đi nào.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hồ Sơ Cá Nhân - VietBike{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main-content container mt-5">
+    <h3 class="text-center text-success">Hồ Sơ Cá Nhân</h3>
+    <div class="text-center mb-4">
+        <img src="{% if profile.profile_picture %}{{ profile.profile_picture }}{% else %}https://english.uccs.edu/sites/default/files/2020-12/placeholder.jpg{% endif %}" alt="Ảnh đại diện" class="profile-image" id="profileImage">
+        <div class="mt-2 d-flex justify-content-center gap-2">
+            <label for="uploadImage" class="btn btn-outline-success btn-sm">Tải ảnh lên</label>
+            <input type="file" id="uploadImage" name="profile_picture" accept="image/*" style="display: none;" onchange="previewImage(event)">
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeImage()">Xóa ảnh</button>
+        </div>
+    </div>
+    <form class="w-50 mx-auto" id="profileForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Tên người dùng</label>
+            <input type="text" class="form-control" name="username" value="{{ profile.username|default:'' }}" placeholder="Nhập tên người dùng">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Số điện thoại</label>
+            <input type="text" class="form-control" name="phone" value="{{ profile.phone|default:'' }}" placeholder="Nhập số điện thoại">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" name="email" value="{{ profile.email|default:'' }}" placeholder="Nhập email">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Mật khẩu cũ</label>
+            <input type="password" class="form-control" name="old_password" placeholder="Nhập mật khẩu cũ">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Mật khẩu mới</label>
+            <input type="password" class="form-control" name="new_password" placeholder="Nhập mật khẩu mới">
+        </div>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} text-center">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        <input type="hidden" id="remove_image" name="remove_image" value="false">
+        <button type="submit" class="btn btn-primary w-100">Lưu Thay Đổi</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/profile.js' %}"></script>
+    <script>
+        document.getElementById('profileForm').addEventListener('submit', function(event) {
+            const uploadInput = document.getElementById('uploadImage');
+            const file = uploadInput.files[0];
+            if (file && file.size > 5 * 1024 * 1024) { // Giới hạn 5MB
+                event.preventDefault();
+                alert('File ảnh quá lớn. Vui lòng chọn file nhỏ hơn 5MB.');
+            }
+        });
+    </script>
+{% endblock %}

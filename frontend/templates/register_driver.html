@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Đăng Ký Tài Xế - VietBike{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="main-content container mt-5">
+    <div class="register-form-container">
+        <h3 class="text-center text-success">Đăng Ký Trở Thành Tài Xế</h3>
+        <p class="text-center text-muted mb-4">Vui lòng điền thông tin để đăng ký làm tài xế VietBike</p>
+        <form class="w-50 mx-auto" id="driverForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Tên người dùng</label>
+                <input type="text" class="form-control" name="username" value="{{ profile.username|default:'' }}" placeholder="Nhập tên người dùng" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Số điện thoại</label>
+                <input type="text" class="form-control" name="phone" value="{{ profile.phone|default:'' }}" placeholder="Nhập số điện thoại" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" name="email" value="{{ profile.email|default:'' }}" placeholder="Nhập email" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Số CMND/CCCD</label>
+                <input type="text" class="form-control" name="id_number" placeholder="Nhập số CMND/CCCD" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Số bằng lái xe</label>
+                <input type="text" class="form-control" name="license_number" placeholder="Nhập số bằng lái xe" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Bằng lái xe (hình ảnh)</label>
+                <input type="file" class="form-control" name="driver_license" accept="image/*" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Ảnh xe (hình ảnh)</label>
+                <input type="file" class="form-control" name="vehicle_photo" accept="image/*" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Biển số xe</label>
+                <input type="text" class="form-control" name="license_plate" placeholder="Nhập biển số xe" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Hãng xe</label>
+                <input type="text" class="form-control" name="brand" placeholder="Nhập hãng xe" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mẫu xe</label>
+                <input type="text" class="form-control" name="model" placeholder="Nhập mẫu xe" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Năm sản xuất</label>
+                <input type="number" class="form-control" name="year" placeholder="Nhập năm sản xuất" required>
+            </div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} text-center">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            <button type="submit" class="btn btn-primary w-100">Đăng Ký</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/register_driver_form.js' %}"></script>
+{% endblock %}

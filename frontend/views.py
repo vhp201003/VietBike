@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from backend.models import DriverProfile
+from django.contrib.auth import login, authenticate
+from backend.models import User, DriverProfile  # Sử dụng User từ backend
 import requests
 import os
 
@@ -18,6 +18,7 @@ def login_view(request):
         password = request.POST.get('password')
         
         try:
+            # Gọi API để lấy token
             response = requests.post(f'{API_BASE_URL}token/', data={
                 'email': email,
                 'password': password
@@ -28,13 +29,34 @@ def login_view(request):
                 request.session['access_token'] = data['access']
                 request.session['refresh_token'] = data['refresh']
                 headers = {'Authorization': f'Bearer {data["access"]}'}
+                
+                # Lấy thông tin user từ API
                 user_response = requests.get(f'{API_BASE_URL}profile/', headers=headers)
                 if user_response.status_code == 200:
                     user_data = user_response.json()
                     request.session['username'] = user_data.get('username', '')
                     request.session['role'] = user_data.get('role', '')
-                messages.success(request, 'Đăng nhập thành công!')
-                return redirect('frontend:home')
+                    
+                    # Đồng bộ user với Django
+                    try:
+                        # Tìm user trong database Django bằng email
+                        user = User.objects.get(email=email)
+                    except User.DoesNotExist:
+                        # Nếu không tồn tại, tạo user mới
+                        user = User.objects.create_user(
+                            username=user_data.get('username', email),  # Dùng username từ API hoặc email
+                            email=email,
+                            password=password  # Lưu ý: Mật khẩu sẽ được hash
+                        )
+                    
+                    # Đăng nhập user vào hệ thống Django
+                    user.backend = 'django.contrib.auth.backends.ModelBackend'
+                    login(request, user)
+                    
+                    messages.success(request, 'Đăng nhập thành công!')
+                    return redirect('frontend:home')
+                else:
+                    messages.error(request, 'Không thể lấy thông tin người dùng.')
             else:
                 messages.error(request, 'Email hoặc mật khẩu không đúng.')
         except requests.RequestException:
@@ -178,12 +200,17 @@ def book_ride(request):
 
 # View cho trang đăng ký tài xế
 def register_driver(request):
-    if not request.user.is_authenticated:
+    access_token = request.session.get('access_token')
+    if not access_token:
         messages.error(request, "Vui lòng đăng nhập trước khi đăng ký tài xế!")
         return redirect('frontend:login')
 
     # Kiểm tra xem người dùng đã có DriverProfile chưa
-    if request.user.driverprofile_set.exists():
+    if not request.user.is_authenticated:
+        messages.error(request, "User không được xác thực!")
+        return redirect('frontend:login')
+    
+    if hasattr(request.user, 'driverprofile') and request.user.driverprofile is not None:  # Sửa cách kiểm tra
         return redirect('frontend:driver_dashboard')  # Nếu đã là tài xế, chuyển hướng đến dashboard
 
     if request.method == 'POST':
@@ -236,24 +263,28 @@ def driver_dashboard(request):
         return redirect('frontend:login')
     
     # Kiểm tra xem người dùng có phải tài xế không
-    driver_profile = request.user.driverprofile_set.first()
+    if not request.user.is_authenticated:
+        messages.error(request, "User không được xác thực!")
+        return redirect('frontend:login')
+
+    driver_profile = getattr(request.user, 'driverprofile', None)  # Sửa cách truy vấn
     if not driver_profile:
         messages.error(request, 'Bạn chưa đăng ký làm tài xế. Vui lòng đăng ký trước.')
         return redirect('frontend:register_driver')
     
-    headers = {'Authorization': f'Token {access_token}'}
+    headers = {'Authorization': f'Bearer {access_token}'}
     profile = {}
     active_ride = None
     
     # Gọi API để lấy thông tin
     try:
-        response = requests.get(f'{settings.API_BASE_URL}profile/', headers=headers)
+        response = requests.get(f'{API_BASE_URL}profile/', headers=headers)
         if response.status_code == 200:
             profile = response.json()
         else:
             messages.error(request, f'Không thể lấy thông tin hồ sơ. Mã lỗi: {response.status_code}')
         
-        response = requests.get(f'{settings.API_BASE_URL}rides/active/', headers=headers)
+        response = requests.get(f'{API_BASE_URL}rides/active/', headers=headers)
         if response.status_code == 200:
             active_ride = response.json().get('ride')
         else:

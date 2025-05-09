@@ -1,0 +1,33 @@
+/* Style cho form đăng ký tài xế */
+.form-control {
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    width: 100%;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Style cho thông báo lỗi */
+.alert {
+    border-radius: 0.375rem;
+}
+
+/* Đảm bảo toàn bộ nội dung không bị che bởi navbar cố định */
+body {
+    padding-top: 70px;
+}
+
+/* Style cho container form */
+.register-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 0.375rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

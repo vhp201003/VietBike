@@ -1,0 +1,59 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+.navbar-brand {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #0d8075 !important;
+}
+.login-container {
+    max-width: 400px;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin: 100px auto;
+}
+.login-container h3 {
+    color: #0d8075;
+    font-weight: bold;
+    text-align: center;
+}
+.btn-login {
+    background-color: #0d8075;
+    border: none;
+}
+.btn-login:hover {
+    background-color: #0b6b61;
+}
+.form-control:focus {
+    border-color: #0d8075;
+    box-shadow: 0 0 5px rgba(13, 128, 117, 0.5);
+}
+.register-link {
+    text-align: center;
+    margin-top: 10px;
+}
+.register-link a {
+    color: #ff5722;
+    font-weight: bold;
+    text-decoration: none;
+}
+.register-link a:hover {
+    text-decoration: underline;
+}
+.main-content {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.footer {
+    background-color: #0d8075;
+    color: white;
+    padding: 15px 0;
+    text-align: center;
+}

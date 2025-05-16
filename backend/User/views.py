@@ -1,11 +1,14 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth import authenticate, login, logout
-from backend.models import User
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authtoken.models import Token
-import os
+from django.contrib.auth import get_user_model
+from django.core.files.storage import default_storage
+import logging
+
+User = get_user_model()
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class RegisterView(APIView):
     def post(self, request):
@@ -13,12 +16,16 @@ class RegisterView(APIView):
         email = request.data.get('email')
         phone = request.data.get('phone')
         password = request.data.get('password')
-
+        
+        if not all([username, email, phone, password]):
+            return Response({'error': 'Vui lòng cung cấp đầy đủ thông tin.'}, status=status.HTTP_400_BAD_REQUEST)
+        
         if User.objects.filter(email=email).exists():
             return Response({'error': 'Email đã được sử dụng.'}, status=status.HTTP_400_BAD_REQUEST)
+        
         if User.objects.filter(phone=phone).exists():
             return Response({'error': 'Số điện thoại đã được sử dụng.'}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -26,87 +33,126 @@ class RegisterView(APIView):
             password=password,
             role='customer'
         )
-        Token.objects.create(user=user)
-
+        
         return Response({
-            'message': 'Đăng ký thành công! Vui lòng đăng nhập.',
-            'user': {'username': username, 'email': email, 'phone': phone}
-        }, status=status.HTTP_201_CREATED)
-
-class LoginView(APIView):
-    def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
-        user = authenticate(request, username=email, password=password)
-        if user:
-            login(request, user)
-            token, _ = Token.objects.get_or_create(user=user)
-            return Response({
-                'access_token': token.key,
+            'message': 'Đăng ký thành công!',
+            'user': {
                 'username': user.username,
-                'role': user.role,
-                'message': 'Đăng nhập thành công!'
-            }, status=status.HTTP_200_OK)
-        return Response({'error': 'Email hoặc mật khẩu không đúng.'}, status=status.HTTP_401_UNAUTHORIZED)
+                'email': user.email,
+                'phone': user.phone
+            }
+        }, status=status.HTTP_201_CREATED)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        request.user.auth_token.delete()
-        logout(request)
-        return Response({'message': 'Đăng xuất thành công!'}, status=status.HTTP_200_OK)
+        try:
+            from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+            from rest_framework_simplejwt.tokens import RefreshToken
+            
+            refresh_token = request.data.get('refresh')
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            
+            return Response({'message': 'Đăng xuất thành công!'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
-        data = {
-            'username': user.username,
-            'email': user.email,
-            'phone': user.phone,
-            'profile_picture': user.profile_picture.url if user.profile_picture else None,
-            'role': user.role
-        }
-        return Response(data)
-
-    def put(self, request):
-        user = request.user
-        data = request.data
-
-        # Cập nhật thông tin người dùng
-        if 'username' in data:
-            user.username = data['username']
-        if 'email' in data and data['email'] != user.email:
-            if User.objects.filter(email=data['email']).exists():
-                return Response({'error': 'Email đã được sử dụng.'}, status=status.HTTP_400_BAD_REQUEST)
-            user.email = data['email']
-        if 'phone' in data and data['phone'] != user.phone:
-            if User.objects.filter(phone=data['phone']).exists():
-                return Response({'error': 'Số điện thoại đã được sử dụng.'}, status=status.HTTP_400_BAD_REQUEST)
-            user.phone = data['phone']
-        if 'new_password' in data and 'old_password' in data:
-            if user.check_password(data['old_password']):
-                user.set_password(data['new_password'])
-            else:
-                return Response({'error': 'Mật khẩu cũ không đúng.'}, status=status.HTTP_400_BAD_REQUEST)
-        if 'profile_picture' in request.FILES:
-            if user.profile_picture:
-                os.remove(user.profile_picture.path)
-            user.profile_picture = request.FILES['profile_picture']
-        if data.get('remove_image') == 'true' and user.profile_picture:
-            os.remove(user.profile_picture.path)
-            user.profile_picture = None
-        user.save()
-
         return Response({
-            'message': 'Cập nhật hồ sơ thành công!',
-            'profile': {
+            'user': {  # Thêm key 'user' để khớp với frontend
                 'username': user.username,
                 'email': user.email,
                 'phone': user.phone,
                 'profile_picture': user.profile_picture.url if user.profile_picture else None,
-                'role': user.role
+                'created_at': user.created_at.isoformat()
+            }
+        }, status=200)
+
+class UpdateProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        username = request.data.get('username', user.username)
+        phone = request.data.get('phone', user.phone)
+        email = request.data.get('email', user.email)
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+        remove_image = request.data.get('remove_image')
+
+        logger.debug(f"Request data: {request.data}")
+        logger.debug(f"Request FILES: {request.FILES}")
+
+        if email != user.email and User.objects.filter(email=email).exists():
+            return Response({'error': 'Email đã được sử dụng.'}, status=status.HTTP_400_BAD_REQUEST)
+        if phone != user.phone and User.objects.filter(phone=phone).exists():
+            return Response({'error': 'Số điện thoại đã được sử dụng.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.username = username
+        user.phone = phone
+        user.email = email
+
+        if old_password and new_password:
+            if not user.check_password(old_password):
+                return Response({'error': 'Mật khẩu cũ không đúng.'}, status=status.HTTP_400_BAD_REQUEST)
+            user.set_password(new_password)
+
+        if remove_image == 'true' and user.profile_picture:
+            if default_storage.exists(user.profile_picture.name):
+                default_storage.delete(user.profile_picture.name)
+            user.profile_picture = None
+        elif 'profile_picture' in request.FILES:
+            profile_picture = request.FILES['profile_picture']
+            logger.debug(f"Received file: {profile_picture.name}, size: {profile_picture.size}")
+            if profile_picture.size > 5 * 1024 * 1024:
+                return Response({'error': 'File ảnh quá lớn. Vui lòng chọn file nhỏ hơn 5MB.'}, status=400)
+            if user.profile_picture and default_storage.exists(user.profile_picture.name):
+                default_storage.delete(user.profile_picture.name)
+            try:
+                user.profile_picture = profile_picture
+                user.save()
+                logger.debug(f"File saved at: {user.profile_picture.path}")
+            except Exception as e:
+                logger.error(f"Error saving file: {str(e)}")
+                return Response({'error': f'Lỗi lưu file: {str(e)}'}, status=400)
+        else:
+            logger.warning("No profile_picture in request.FILES")
+
+        user.save()
+
+        return Response({
+            'message': 'Cập nhật hồ sơ thành công!',
+            'user': {
+                'username': user.username,
+                'email': user.email,
+                'phone': user.phone,
+                'profile_picture': user.profile_picture.url if user.profile_picture else None,
+                'created_at': user.created_at.isoformat()
             }
         }, status=status.HTTP_200_OK)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+        
+        if not all([old_password, new_password]):
+            return Response({'error': 'Vui lòng cung cấp mật khẩu cũ và mới.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not user.check_password(old_password):
+            return Response({'error': 'Mật khẩu cũ không đúng.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.set_password(new_password)
+        user.save()
+        
+        return Response({'message': 'Đổi mật khẩu thành công!'}, status=status.HTTP_200_OK)

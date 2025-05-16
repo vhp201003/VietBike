@@ -1,0 +1,139 @@
+/* Style cho map container */
+.map-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+/* Style cho thông báo trạng thái */
+.status-message {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
+
+/* Các loại thông báo trạng thái */
+.status-message.info {
+    color: #1d4ed8;
+    background-color: #dbeafe;
+}
+
+.status-message.success {
+    color: #15803d;
+    background-color: #dcfce7;
+}
+
+.status-message.danger {
+    color: #b91c1c;
+    background-color: #fee2e2;
+}
+
+/* Style cho hiệu ứng pulse vị trí */
+.location-pulse {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background: rgba(13, 128, 117, 0.5);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    z-index: 1;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* Style cho thông tin tài xế */
+.driver-info {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.driver-info .rating {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+/* Style cho các nút điều khiển bản đồ */
+.map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-outline-secondary {
+    background: white;
+    border: 1px solid #d1d5db;
+    color: #374151;
+}
+
+.btn-outline-secondary:hover {
+    background: #f3f4f6;
+}
+
+/* Style cho thanh trạng thái */
+.status-bar {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.status-bar .text-success {
+    color: #15803d;
+}
+
+.status-bar .text-danger {
+    color: #b91c1c;
+}
+
+/* Style cho nút kết nối */
+.connect-btn {
+    font-weight: 500;
+}
+
+/* Style cho bottom navigation */
+.bottom-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.bottom-nav .btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trang Tài Xế - VietBike{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="main-content container mt-5">
+    <div class="map-container">
+        <div id="map" style="height: 400px;"></div>
+        <div class="driver-info">
+            <img src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}https://via.placeholder.com/50{% endif %}" alt="Tài xế" class="rounded-circle" style="width: 50px; height: 50px;">
+            <span class="rating">5.0</span>
+        </div>
+        <div class="map-controls">
+            <button title="Thời tiết" class="btn btn-outline-secondary btn-sm"><i class="fas fa-cloud"></i></button>
+            <button title="Điều hướng" class="btn btn-outline-secondary btn-sm"><i class="fas fa-compass"></i></button>
+            <button title="Vị trí" id="locationBtn" class="btn btn-outline-secondary btn-sm"><i class="fas fa-location-arrow"></i></button>
+            <button title="Xoay bản đồ" id="resetOrientationBtn" class="btn btn-outline-secondary btn-sm"><i class="fas fa-sync"></i></button>
+        </div>
+        <div class="status-bar">
+            <span class="text-{% if profile.is_available %}success{% else %}danger{% endif %}">
+                Bạn đang {% if profile.is_available %}online{% else %}offline{% endif %}.
+            </span>
+        </div>
+        <button class="connect-btn btn btn-primary w-100 mt-3" data-connected="{{ profile.is_available|lower }}">
+            {% if profile.is_available %}Tắt kết nối{% else %}Bật kết nối{% endif %}
+        </button>
+    </div>
+    <div class="bottom-nav mt-3">
+        <button class="btn btn-outline-primary"><i class="fas fa-car"></i> Loại dịch vụ</button>
+        <button class="btn btn-outline-primary"><i class="fas fa-map-marker-alt"></i> Điểm đến yêu thích</button>
+        <button class="btn btn-outline-primary"><i class="fas fa-bolt"></i> Tự động nhận</button>
+        <button class="btn btn-outline-primary"><i class="fas fa-ellipsis-h"></i> Thêm</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAyFtIwCjdqa288Tpi95guG3CtKJvGP60w&callback=initMap" async defer></script>
+    <script src="{% static 'js/driver_dashboard.js' %}"></script>
+{% endblock %}
